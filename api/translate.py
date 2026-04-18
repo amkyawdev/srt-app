@@ -66,7 +66,7 @@ def translate_with_groq(text: str, target_lang: str, source_lang: str = "auto") 
     
     prompt = f"Translate from {source} to {target}: {text}"
     completion = groq_client.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="llama-3.1-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
@@ -131,11 +131,11 @@ async def translate_text(request: TranslateRequest):
 async def bot_response(query: dict):
     errors = []
     
-    # Try Groq first
+    # Try Groq first (using llama model)
     if groq_client:
         try:
             completion = groq_client.chat.completions.create(
-                model="mixtral-8x7b-32768",
+                model="llama-3.1-70b-versatile",
                 messages=[{"role": "user", "content": query.get("message", "")}],
                 temperature=0.7
             )
