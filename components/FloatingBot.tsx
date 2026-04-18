@@ -7,21 +7,29 @@ export const FloatingBot = () => {
   const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const sendMessage = async () => {
     if (!input.trim()) return;
     
+    setError('');
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/bot', { message: input });
+      const response = await axios.post('/api/bot', { message: currentInput });
       const botMessage = { role: 'assistant', content: response.data.reply };
       setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      console.error('Bot error:', error);
+    } catch (err: any) {
+      console.error('Bot error:', err);
+      const errorMsg = err.response?.data?.detail || err.message || 'Failed to get response';
+      setError(errorMsg);
+      // Add error message to chat
+      const errorMessage = { role: 'assistant', content: `⚠️ Error: ${errorMsg}` };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -58,14 +66,29 @@ export const FloatingBot = () => {
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.length === 0 && (
+                <div className="text-gray-500 text-center text-sm">
+                  မင်္ဂလာပါ! ဘာမှာသုံးချင်ပါ။
+                </div>
+              )}
               {messages.map((msg, idx) => (
                 <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                  <div className={`inline-block p-2 rounded-lg max-w-[80%] ${msg.role === 'user' ? 'bg-blue-600' : 'bg-gray-700'}`}>
+                  <div className={`inline-block p-2 rounded-lg max-w-[80%] ${msg.role === 'user' ? 'bg-blue-600' : msg.content.includes('Error') ? 'bg-red-500/50 text-red-300' : 'bg-gray-700'}`}>
                     {msg.content}
                   </div>
                 </div>
               ))}
-              {loading && <div className="text-gray-400">Typing...</div>}
+              {loading && (
+                <div className="text-left">
+                  <div className="inline-block p-2 rounded-lg bg-gray-700">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="p-4 border-t border-gray-700">
@@ -78,7 +101,11 @@ export const FloatingBot = () => {
                   placeholder="Ask me anything..."
                   className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                 />
-                <button onClick={sendMessage} className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <button 
+                  onClick={sendMessage} 
+                  disabled={loading || !input.trim()}
+                  className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                >
                   Send
                 </button>
               </div>

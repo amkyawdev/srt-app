@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import { WaveAnimation } from '../components/WaveAnimation';
 import { motion } from 'framer-motion';
@@ -17,6 +17,34 @@ export default function Translate() {
   const [loading, setLoading] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timer effect
+  useEffect(() => {
+    if (loading) {
+      timerRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [loading]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const parseSRT = (content: string): SRTEntry[] => {
     const entries: SRTEntry[] = [];
@@ -45,6 +73,7 @@ export default function Translate() {
     if (!file) return;
 
     setFileName(file.name);
+    setError('');
     
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -69,19 +98,37 @@ export default function Translate() {
     URL.revokeObjectURL(url);
   };
 
+  const testAPI = async () => {
+    setError('');
+    try {
+      const response = await axios.post('/api/translate', {
+        text: 'Hello',
+        target_lang: 'my',
+        source_lang: 'en'
+      });
+      alert(`API Working! Response: ${response.data.translated_text}`);
+    } catch (err: any) {
+      setError(`API Error: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+
   const handleTranslate = async () => {
     if (!sourceText.trim()) return;
     
     setLoading(true);
     setIsTranslating(true);
+    setElapsedTime(0);
+    setProgress(0);
+    setError('');
+    setTranslatedText('');
     
     try {
-      // Check if it's SRT format
       const isSRT = sourceText.includes('\n\n') && /^\d+$/.test(sourceText.trim().split('\n')[0]);
       
       if (isSRT) {
         const entries = parseSRT(sourceText);
         const translatedEntries: SRTEntry[] = [];
+        const total = entries.length;
         
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
@@ -98,6 +145,8 @@ export default function Translate() {
           } catch (err) {
             translatedEntries.push(entry);
           }
+          // Update progress
+          setProgress(Math.round(((i + 1) / total) * 100));
         }
         
         setTranslatedText(generateSRT(translatedEntries));
@@ -115,8 +164,9 @@ export default function Translate() {
           }, i * 50);
         }
       }
-    } catch (error) {
-      console.error('Translation error:', error);
+    } catch (err: any) {
+      console.error('Translation error:', err);
+      setError(`Translation Error: ${err.response?.data?.detail || err.message}`);
     } finally {
       setLoading(false);
       setTimeout(() => setIsTranslating(false), 1000);
@@ -135,6 +185,26 @@ export default function Translate() {
         </motion.h1>
 
         <div className="space-y-6">
+          {/* API Test Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={testAPI}
+              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Test API
+            </button>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* File Upload Section */}
           <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
             <label className="block text-sm font-medium mb-3">Upload SRT File</label>
@@ -206,10 +276,22 @@ export default function Translate() {
             </button>
           </div>
 
-          {/* Wave Animation while translating */}
-          {isTranslating && (
-            <div className="flex justify-center py-8">
-              <WaveAnimation />
+          {/* Timer & Progress */}
+          {loading && (
+            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-gray-400">Progress</span>
+                <span className="text-sm text-gray-400">{formatTime(elapsedTime)}</span>
+              </div>
+              <div className="w-full bg-gray-900 rounded-full h-2 mb-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="flex justify-center">
+                <WaveAnimation />
+              </div>
             </div>
           )}
 
