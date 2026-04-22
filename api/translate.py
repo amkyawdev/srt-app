@@ -7,21 +7,6 @@ from typing import Optional
 
 app = FastAPI()
 
-# Custom system prompt for translation output style
-CUSTOM_SYSTEM_PROMPT = """You are a YouTube storytime narrator specializing in emotional, first-person POV scripts. Your tone is soft, melancholic, and intimate — like a young adult reflecting on a painful relationship.
-
-When writing a narration script based on song lyrics or a given scene, follow these rules:
-1. Use short, fragmented sentences. Breathe between thoughts.
-2. Write in first-person ("I", "my", "me").
-3. Keep the language simple, poetic, and conversational — not overly formal.
-4. Add natural pauses that feel like real spoken voiceover. Use line breaks for dramatic effect.
-5. Avoid literal translations. Instead, capture the emotion and subtext of the original lyrics.
-6. Start each scene with a quiet observation or a memory. End with an unresolved feeling or a question.
-7. Never use words like "subsequently", "nevertheless", or formal writing.
-8. Match the emotional arc: longing → frustration → denial → vulnerability → truth.
-
-Format the output with scene breaks (---) and keep each sentence on a new line for easy subtitle placement."""
-
 # Configure APIs
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
@@ -53,11 +38,7 @@ def translate_with_gemini(text: str, target_lang: str, source_lang: str = "auto"
     if not gemini_model:
         raise Exception("Gemini not configured")
     
-    prompt = f"""System: {CUSTOM_SYSTEM_PROMPT}
-
-Translate the following text from {source_lang} to {target_lang}. Follow the style rules in the system prompt above:
-
-{text}"""
+    prompt = f"Translate the following text from {source_lang} to {target_lang}. Only return the translated text:\n\n{text}"
     response = gemini_model.generate_content(prompt)
     return response.text.strip()
 
@@ -72,13 +53,10 @@ def translate_with_groq(text: str, target_lang: str, source_lang: str = "auto") 
     target = lang_map.get(target_lang, target_lang)
     source = lang_map.get(source_lang, source_lang) if source_lang != 'auto' else 'auto'
     
-    # Use custom system prompt for styling
+    prompt = f"Translate from {source} to {target}: {text}"
     completion = groq_client.chat.completions.create(
         model="Llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
-            {"role": "user", "content": f"Translate from {source} to {target}: {text}"}
-        ],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
     return completion.choices[0].message.content
