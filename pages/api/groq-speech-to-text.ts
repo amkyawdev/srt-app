@@ -69,9 +69,9 @@ export default async function handler(
     // Transcribe using Groq Whisper
     const transcription = await groq.audio.transcriptions.create({
       file: new File([fileBuffer], fileName, { type: 'audio/webm' }),
-      model: 'whisper-large-v3-turbo',
+      model: 'whisper-large-v3',
       response_format: 'json',
-      language: 'auto',
+      language: 'en',
     });
 
     // Clean up temp file
