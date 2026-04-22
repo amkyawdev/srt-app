@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 const navItems = [
   { name: 'Home', path: '/' },
   { name: 'Translate', path: '/translate' },
+  { name: 'Speak to Text', path: '/speak-to-text' },
   { name: 'Docs', path: '/docs' },
   { name: 'About', path: '/about' },
 ];
