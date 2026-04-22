@@ -58,7 +58,7 @@ def translate_with_groq(text: str, target_lang: str, source_lang: str = "auto") 
     
     prompt = f"Translate this SRT content to {target}. Keep timestamps and formatting:\n\n{text}"
     completion = groq_client.chat.completions.create(
-        model="deepseek-r1-distill-llama-70b", # စာမထပ်အောင် ဒီ model ပြောင်းထားပေးသည်
+        model="qwen/qwen3-32b", # စာမထပ်အောင် ဒီ model ပြောင်းထားပေးသည်
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3, # SRT အတွက် တိကျအောင် temp လျှော့ထားသည်
         frequency_penalty=0.5
