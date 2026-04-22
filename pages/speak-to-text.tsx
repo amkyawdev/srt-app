@@ -186,9 +186,9 @@ export default function Speak() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="mt-4 px-4 py-2 bg-blue-600/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm"
+                  className="mt-4 px-4 py-2 bg-blue-600/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm font-bold"
                 >
-                  Selected: {selectedFile.toUpperCase()}
+                  {selectedFile.split('.').pop()?.toUpperCase() || 'MP4'}
                 </motion.div>
               )}
               
