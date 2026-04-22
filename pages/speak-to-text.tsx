@@ -19,7 +19,9 @@ export default function Speak() {
   const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file.name);
+      // Only store the file extension
+      const ext = file.name.split('.').pop()?.toUpperCase() || 'MP4';
+      setSelectedFile(ext);
       setTranscript('');
       setError('');
     }
@@ -188,7 +190,7 @@ export default function Speak() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="mt-4 px-4 py-2 bg-blue-600/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm font-bold"
                 >
-                  {selectedFile.split('.').pop()?.toUpperCase() || 'MP4'}
+                  {selectedFile}
                 </motion.div>
               )}
               
