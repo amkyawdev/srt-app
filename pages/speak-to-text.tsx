@@ -178,12 +178,19 @@ export default function Speak() {
                       className="hidden"
                     />
                   </label>
-                  {selectedFile && (
-                    <span className="text-gray-400 text-sm">{selectedFile}</span>
-                  )}
                 </div>
-                <p className="text-gray-500 text-xs mt-2">Supported: MP4, M4A, WEBM, MP3</p>
               </div>
+              
+              {/* Show selected file format */}
+              {selectedFile && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mt-4 px-4 py-2 bg-blue-600/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm"
+                >
+                  Selected: {selectedFile.toUpperCase()}
+                </motion.div>
+              )}
               
               <motion.button
                 whileHover={{ scale: 1.02 }}
