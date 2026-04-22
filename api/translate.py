@@ -66,7 +66,7 @@ def translate_with_groq(text: str, target_lang: str, source_lang: str = "auto") 
     
     prompt = f"Translate from {source} to {target}: {text}"
     completion = groq_client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="qwen/qwen3-32b",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
