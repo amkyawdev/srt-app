@@ -98,7 +98,7 @@ async def bot_response(query: dict):
             completion = groq_client.chat.completions.create(
                 model="Llama-3.3-70b-versatile", # တောင်းဆိုထားသည့်အတိုင်း qwen3 ကို အသုံးပြုထားသည်
                 messages=[{"role": "user", "content": query.get("message", "")}],
-                temperature=0.7,
+                temperature=0.6,
                 frequency_penalty=0.6 # စာသားထပ်ခြင်းကို လျှော့ချရန်
             )
             return {"reply": completion.choices[0].message.content}
